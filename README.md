@@ -94,6 +94,7 @@ var client = new BinlogClient(options =>
     options.SslMode = SslMode.Disabled;
     options.HeartbeatInterval = TimeSpan.FromSeconds(30);
     options.Blocking = true;
+    options.UseNewStatusCommand = false; for mysql 9 and above this should be true
 
     // Start replication from MariaDB GTID. Recommended.
     options.Binlog = BinlogOptions.FromGtid(GtidList.Parse("0-1-270"));
@@ -243,6 +244,7 @@ MySqlCdc supports both MariaDB & MySQL server.
   | 5.6      | ✅ Supported             |
   | 5.7      | ✅ Supported             |
   | 8.0      | ✅ Supported             |
+  | 9.0      | ✅ Supported             |
 
 ## License
 The library is provided under the [MIT License](LICENSE).
