@@ -29,7 +29,7 @@ public ref struct PacketReader
     /// <summary>
     /// Reads 16-bit int written in little-endian format.
     /// </summary>
-    public UInt16 ReadUInt16LittleEndian()
+    public ushort ReadUInt16LittleEndian()
     {
         var result = BinaryPrimitives.ReadUInt16LittleEndian(_span.Slice(_offset));
         _offset += 2;
@@ -39,7 +39,7 @@ public ref struct PacketReader
     /// <summary>
     /// Reads 16-bit int written in big-endian format.
     /// </summary>
-    public UInt16 ReadUInt16BigEndian()
+    public ushort ReadUInt16BigEndian()
     {
         var result = BinaryPrimitives.ReadUInt16BigEndian(_span.Slice(_offset));
         _offset += 2;
@@ -49,7 +49,7 @@ public ref struct PacketReader
     /// <summary>
     /// Reads 32-bit int written in little-endian format.
     /// </summary>
-    public UInt32 ReadUInt32LittleEndian()
+    public uint ReadUInt32LittleEndian()
     {
         var result = BinaryPrimitives.ReadUInt32LittleEndian(_span.Slice(_offset));
         _offset += 4;
@@ -59,7 +59,7 @@ public ref struct PacketReader
     /// <summary>
     /// Reads 32-bit int written in big-endian format.
     /// </summary>
-    public UInt32 ReadUInt32BigEndian()
+    public uint ReadUInt32BigEndian()
     {
         var result = BinaryPrimitives.ReadUInt32BigEndian(_span.Slice(_offset));
         _offset += 4;
@@ -69,7 +69,7 @@ public ref struct PacketReader
     /// <summary>
     /// Reads 64-bit long written in little-endian format.
     /// </summary>
-    public UInt64 ReadUInt64LittleEndian()
+    public ulong ReadUInt64LittleEndian()
     {
         var result = BinaryPrimitives.ReadUInt64LittleEndian(_span.Slice(_offset));
         _offset += 8;
@@ -164,8 +164,8 @@ public ref struct PacketReader
         if (firstByte == 0xFE)
         {
             var value = ReadInt64LittleEndian();
-            if (value < 0 || value > Int32.MaxValue)
-                throw new OverflowException($"Length encoded integer cannot exceed {nameof(Int32.MaxValue)}.");
+            if (value < 0 || value > int.MaxValue)
+                throw new OverflowException($"Length encoded integer cannot exceed {nameof(int.MaxValue)}.");
 
             // Max theoretical length of .NET strings, arrays is Int32.MaxValue
             return (int)value;
@@ -299,7 +299,7 @@ public ref struct PacketReader
     /// <summary>
     /// Parses a string from the span.
     /// </summary>
-    private string ParseString(ReadOnlySpan<byte> span)
+    private static string ParseString(ReadOnlySpan<byte> span)
     {
         if (span.Length == 0)
             return string.Empty;

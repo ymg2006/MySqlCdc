@@ -16,8 +16,6 @@ namespace MySqlCdc.Providers.MySql;
 /// </summary>
 public sealed class JsonParser
 {
-    private readonly static ColumnParser ColumnParser = new();
-
     /// <summary>
     /// Parses MySQL binary format json to a string.
     /// </summary>
@@ -41,7 +39,7 @@ public sealed class JsonParser
         using var memoryOwner = new MemoryOwner(new ReadOnlySequence<byte>(data));
         var reader = new PacketReader(memoryOwner.Memory.Span);
 
-        var valueType = parser.ReadValueType(ref reader);
+        var valueType = ReadValueType(ref reader);
         parser.ParseNode(ref reader, valueType);
     }
 
@@ -52,35 +50,35 @@ public sealed class JsonParser
         _writer = writer;
     }
 
-    private ValueType ReadValueType(ref PacketReader reader) => (ValueType)reader.ReadByte();
+    private static ValueType ReadValueType(ref PacketReader reader) => (ValueType)reader.ReadByte();
 
     private void ParseNode(ref PacketReader reader, ValueType valueType)
     {
         switch (valueType)
         {
             case ValueType.SMALL_OBJECT:
-                ParseArrayOrObject(ref reader, valueType, true, true);
+                ParseArrayOrObject(ref reader, true, true);
                 break;
             case ValueType.LARGE_OBJECT:
-                ParseArrayOrObject(ref reader, valueType, false, true);
+                ParseArrayOrObject(ref reader, false, true);
                 break;
             case ValueType.SMALL_ARRAY:
-                ParseArrayOrObject(ref reader, valueType, true, false);
+                ParseArrayOrObject(ref reader, true, false);
                 break;
             case ValueType.LARGE_ARRAY:
-                ParseArrayOrObject(ref reader, valueType, false, false);
+                ParseArrayOrObject(ref reader, false, false);
                 break;
             case ValueType.LITERAL:
                 ParseLiteral(ref reader);
                 break;
             case ValueType.INT16:
-                _writer.WriteValue((Int16)reader.ReadUInt16LittleEndian());
+                _writer.WriteValue((short)reader.ReadUInt16LittleEndian());
                 break;
             case ValueType.UINT16:
                 _writer.WriteValue(reader.ReadUInt16LittleEndian());
                 break;
             case ValueType.INT32:
-                _writer.WriteValue((Int32)reader.ReadUInt32LittleEndian());
+                _writer.WriteValue((int)reader.ReadUInt32LittleEndian());
                 break;
             case ValueType.UINT32:
                 _writer.WriteValue(reader.ReadUInt32LittleEndian());
@@ -89,7 +87,7 @@ public sealed class JsonParser
                 _writer.WriteValue(reader.ReadInt64LittleEndian());
                 break;
             case ValueType.UINT64:
-                _writer.WriteValue((UInt64)reader.ReadInt64LittleEndian());
+                _writer.WriteValue((ulong)reader.ReadInt64LittleEndian());
                 break;
             case ValueType.DOUBLE:
                 _writer.WriteValue(ColumnParser.ParseDouble(ref reader, 0));
@@ -108,14 +106,14 @@ public sealed class JsonParser
     /// <summary>
     /// Skips empty holes made by partial updates (MySQL 8.0.16+)
     /// </summary>
-    private void Advance(ref PacketReader reader, int startIndex, int offset)
+    private static void Advance(ref PacketReader reader, int startIndex, int offset)
     {
         var holeSize = offset - (reader.Consumed - startIndex);
         if (holeSize > 0)
             reader.Advance(holeSize);
     }
 
-    private void ParseArrayOrObject(ref PacketReader reader, ValueType valueType, bool small, bool isObject)
+    private void ParseArrayOrObject(ref PacketReader reader, bool small, bool isObject)
     {
         var startIndex = reader.Consumed;
         var valueSize = small ? 2 : 4;
@@ -146,7 +144,7 @@ public sealed class JsonParser
             }
             else if (type == ValueType.INT16)
             {
-                entries[i] = ValueEntry.FromInlined(type, (Int16)reader.ReadUInt16LittleEndian());
+                entries[i] = ValueEntry.FromInlined(type, (short)reader.ReadUInt16LittleEndian());
                 reader.Advance(valueSize - 2);
             }
             else if (type == ValueType.UINT16)
@@ -156,7 +154,7 @@ public sealed class JsonParser
             }
             else if (type == ValueType.INT32 && !small)
             {
-                entries[i] = ValueEntry.FromInlined(type, (Int32)reader.ReadUInt32LittleEndian());
+                entries[i] = ValueEntry.FromInlined(type, (int)reader.ReadUInt32LittleEndian());
             }
             else if (type == ValueType.UINT32 && !small)
             {
@@ -204,13 +202,13 @@ public sealed class JsonParser
                 _writer.WriteValue((bool)entry.Value);
 
             else if (entry.Type == ValueType.INT16)
-                _writer.WriteValue((Int16)entry.Value);
+                _writer.WriteValue((short)entry.Value);
             else if (entry.Type == ValueType.UINT16)
-                _writer.WriteValue((UInt16)entry.Value);
+                _writer.WriteValue((ushort)entry.Value);
             else if (entry.Type == ValueType.INT32)
-                _writer.WriteValue((Int32)entry.Value);
+                _writer.WriteValue((int)entry.Value);
             else if (entry.Type == ValueType.UINT32)
-                _writer.WriteValue((UInt32)entry.Value);
+                _writer.WriteValue((uint)entry.Value);
         }
         if (isObject) _writer.WriteEndObject(); else _writer.WriteEndArray();
 
@@ -271,7 +269,7 @@ public sealed class JsonParser
         }
     }
 
-    private DateTime ReadDateTime(ref PacketReader reader)
+    private static DateTime ReadDateTime(ref PacketReader reader)
     {
         var raw = reader.ReadInt64LittleEndian();
         var value = raw >> 24;
@@ -283,10 +281,10 @@ public sealed class JsonParser
         var minute = (int)(value >> 6) % (1 << 6);
         var second = (int)(value % (1 << 6));
         var microSecond = (int)(raw % (1 << 24));
-        return new DateTime(year, month, day, hour, minute, second, microSecond / 1000);
+        return new DateTime(year, month, day, hour, minute, second, microSecond / 1000, DateTimeKind.Utc);
     }
 
-    private TimeSpan ReadTime(ref PacketReader reader)
+    private static TimeSpan ReadTime(ref PacketReader reader)
     {
         var raw = reader.ReadInt64LittleEndian();
         var value = raw >> 24;
@@ -302,7 +300,7 @@ public sealed class JsonParser
         return new TimeSpan(0, hour, minute, second, microSecond / 1000);
     }
 
-    private bool? ReadLiteral(ref PacketReader reader)
+    private static bool? ReadLiteral(ref PacketReader reader)
     {
         var value = reader.ReadByte();
         return value switch
@@ -314,7 +312,7 @@ public sealed class JsonParser
         };
     }
 
-    private int ReadJsonSize(ref PacketReader reader, bool small)
+    private static int ReadJsonSize(ref PacketReader reader, bool small)
     {
         long result = small ? reader.ReadUInt16LittleEndian() : reader.ReadUInt32LittleEndian();
 
@@ -324,7 +322,7 @@ public sealed class JsonParser
         return (int)result;
     }
 
-    private int ReadDataLength(ref PacketReader reader)
+    private static int ReadDataLength(ref PacketReader reader)
     {
         var length = 0;
         for (var i = 0; i < 5; i++)

@@ -26,12 +26,12 @@ public class ReplicaOptions
     /// A database user which is used to register as a database slave.
     /// The user needs to have <c>REPLICATION SLAVE</c>, <c>REPLICATION CLIENT</c> privileges.
     /// </summary>
-    public string Username { get; set; } = String.Empty;
+    public string Username { get; set; } = string.Empty;
 
     /// <summary>
     /// The password of the user which is used to connect.
     /// </summary>
-    public string Password { get; set; } = String.Empty;
+    public string Password { get; set; } = string.Empty;
 
     /// <summary>
     /// Default database name specified in Handshake connection.

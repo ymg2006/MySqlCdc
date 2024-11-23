@@ -13,8 +13,6 @@ namespace MySqlCdc.Parsers;
 /// </summary>
 public abstract class RowEventParser
 {
-    private readonly ColumnParser _columnParser = new ();
-
     private int RowsEventVersion { get; }
     private Dictionary<long, TableMapEvent> TableMapCache { get; }
     
@@ -91,7 +89,7 @@ public abstract class RowEventParser
     /// <summary>
     /// Parses a row in a rows event.
     /// </summary>
-    protected RowData ParseRow(ref PacketReader reader, TableMapEvent tableMap, bool[] columnsPresent, int cellsIncluded)
+    protected static RowData ParseRow(ref PacketReader reader, TableMapEvent tableMap, bool[] columnsPresent, int cellsIncluded)
     {
         var row = new object?[tableMap.ColumnTypes.Length];
         var nullBitmap = reader.ReadBitmapLittleEndian(cellsIncluded);
@@ -122,53 +120,53 @@ public abstract class RowEventParser
         return new RowData(row);
     }
 
-    private object? ParseCell(ref PacketReader reader, int columnType, int metadata)
+    private static object? ParseCell(ref PacketReader reader, int columnType, int metadata)
     {
         return (ColumnType)columnType switch
         {
             /* Numeric types. The only place where numbers can be negative */
-            ColumnType.Tiny => _columnParser.ParseTinyInt(ref reader, metadata),
-            ColumnType.Short => _columnParser.ParseSmallInt(ref reader, metadata),
-            ColumnType.Int24 => _columnParser.ParseMediumInt(ref reader, metadata),
-            ColumnType.Long => _columnParser.ParseInt(ref reader, metadata),
-            ColumnType.LongLong => _columnParser.ParseBigInt(ref reader, metadata),
-            ColumnType.Float => _columnParser.ParseFloat(ref reader, metadata),
-            ColumnType.Double => _columnParser.ParseDouble(ref reader, metadata),
-            ColumnType.NewDecimal => _columnParser.ParseNewDecimal(ref reader, metadata),
+            ColumnType.Tiny => ColumnParser.ParseTinyInt(ref reader, metadata),
+            ColumnType.Short => ColumnParser.ParseSmallInt(ref reader, metadata),
+            ColumnType.Int24 => ColumnParser.ParseMediumInt(ref reader, metadata),
+            ColumnType.Long => ColumnParser.ParseInt(ref reader, metadata),
+            ColumnType.LongLong => ColumnParser.ParseBigInt(ref reader, metadata),
+            ColumnType.Float => ColumnParser.ParseFloat(ref reader, metadata),
+            ColumnType.Double => ColumnParser.ParseDouble(ref reader, metadata),
+            ColumnType.NewDecimal => ColumnParser.ParseNewDecimal(ref reader, metadata),
 
             /* String types, includes varchar, varbinary & fixed char, binary */
-            ColumnType.String => _columnParser.ParseString(ref reader, metadata),
-            ColumnType.VarChar => _columnParser.ParseString(ref reader, metadata),
-            ColumnType.VarString => _columnParser.ParseString(ref reader, metadata),
+            ColumnType.String => ColumnParser.ParseString(ref reader, metadata),
+            ColumnType.VarChar => ColumnParser.ParseString(ref reader, metadata),
+            ColumnType.VarString => ColumnParser.ParseString(ref reader, metadata),
 
             /* BIT, ENUM, SET types */
-            ColumnType.Bit => _columnParser.ParseBit(ref reader, metadata),
-            ColumnType.Enum => _columnParser.ParseEnum(ref reader, metadata),
-            ColumnType.Set => _columnParser.ParseSet(ref reader, metadata),
+            ColumnType.Bit => ColumnParser.ParseBit(ref reader, metadata),
+            ColumnType.Enum => ColumnParser.ParseEnum(ref reader, metadata),
+            ColumnType.Set => ColumnParser.ParseSet(ref reader, metadata),
 
             /* Blob types. MariaDB always creates BLOB for first three */
-            ColumnType.TinyBlob => _columnParser.ParseBlob(ref reader, metadata),
-            ColumnType.MediumBlob => _columnParser.ParseBlob(ref reader, metadata),
-            ColumnType.LongBlob => _columnParser.ParseBlob(ref reader, metadata),
-            ColumnType.Blob => _columnParser.ParseBlob(ref reader, metadata),
+            ColumnType.TinyBlob => ColumnParser.ParseBlob(ref reader, metadata),
+            ColumnType.MediumBlob => ColumnParser.ParseBlob(ref reader, metadata),
+            ColumnType.LongBlob => ColumnParser.ParseBlob(ref reader, metadata),
+            ColumnType.Blob => ColumnParser.ParseBlob(ref reader, metadata),
 
             /* Date and time types */
-            ColumnType.Year => _columnParser.ParseYear(ref reader, metadata),
-            ColumnType.Date => _columnParser.ParseDate(ref reader, metadata),
+            ColumnType.Year => ColumnParser.ParseYear(ref reader, metadata),
+            ColumnType.Date => ColumnParser.ParseDate(ref reader, metadata),
 
             // Older versions of MySQL.
-            ColumnType.Time => _columnParser.ParseTime(ref reader, metadata),
-            ColumnType.Timestamp => _columnParser.ParseTimeStamp(ref reader, metadata),
-            ColumnType.DateTime => _columnParser.ParseDateTime(ref reader, metadata),
+            ColumnType.Time => ColumnParser.ParseTime(ref reader, metadata),
+            ColumnType.Timestamp => ColumnParser.ParseTimeStamp(ref reader, metadata),
+            ColumnType.DateTime => ColumnParser.ParseDateTime(ref reader, metadata),
 
             // MySQL 5.6.4+ types. Supported from MariaDB 10.1.2.
-            ColumnType.Time2 => _columnParser.ParseTime2(ref reader, metadata),
-            ColumnType.TimeStamp2 => _columnParser.ParseTimeStamp2(ref reader, metadata),
-            ColumnType.DateTime2 => _columnParser.ParseDateTime2(ref reader, metadata),
+            ColumnType.Time2 => ColumnParser.ParseTime2(ref reader, metadata),
+            ColumnType.TimeStamp2 => ColumnParser.ParseTimeStamp2(ref reader, metadata),
+            ColumnType.DateTime2 => ColumnParser.ParseDateTime2(ref reader, metadata),
 
             /* MySQL-specific data types */
-            ColumnType.Geometry => _columnParser.ParseBlob(ref reader, metadata),
-            ColumnType.Json => _columnParser.ParseBlob(ref reader, metadata),
+            ColumnType.Geometry => ColumnParser.ParseBlob(ref reader, metadata),
+            ColumnType.Json => ColumnParser.ParseBlob(ref reader, metadata),
             _ => throw new InvalidOperationException($"Column type {columnType} is not supported")
         };
     }
@@ -176,7 +174,7 @@ public abstract class RowEventParser
     /// <summary>
     /// Gets number of bits set in a bitmap.
     /// </summary>
-    protected int GetBitsNumber(bool[] bitmap)
+    protected static int GetBitsNumber(bool[] bitmap)
     {
         // USING LINQ HERE WILL SLOW DOWN PERFORMANCE A LOT
         var value = 0;

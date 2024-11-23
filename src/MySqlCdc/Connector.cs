@@ -112,7 +112,7 @@ internal class Connector
         }
 
         // Request public key.
-        await _connection.WritePacketAsync(new byte[] {0x02}, seqNum, cancellationToken);
+        await _connection.WritePacketAsync([0x02], seqNum, cancellationToken);
         (packet, seqNum) = await _connection.ReadPacketAsync(cancellationToken);
         Extensions.ThrowIfErrorPacket(packet, "Requesting caching_sha2_password public key.");
 

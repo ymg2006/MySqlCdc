@@ -35,32 +35,32 @@ public interface IJsonWriter
     /// <summary>
     /// Writes Int16 value.
     /// </summary>
-    void WriteValue(Int16 value);
+    void WriteValue(short value);
 
     /// <summary>
     /// Writes UInt16 value.
     /// </summary>
-    void WriteValue(UInt16 value);
+    void WriteValue(ushort value);
 
     /// <summary>
     /// Writes Int32 value.
     /// </summary>
-    void WriteValue(Int32 value);
+    void WriteValue(int value);
 
     /// <summary>
     /// Writes UInt32 value.
     /// </summary>
-    void WriteValue(UInt32 value);
+    void WriteValue(uint value);
 
     /// <summary>
     /// Writes Int64 value.
     /// </summary>
-    void WriteValue(Int64 value);
+    void WriteValue(long value);
 
     /// <summary>
     /// Writes UInt64 value.
     /// </summary>
-    void WriteValue(UInt64 value);
+    void WriteValue(ulong value);
 
     /// <summary>
     /// Writes double value.

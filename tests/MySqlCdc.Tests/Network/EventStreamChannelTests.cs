@@ -13,7 +13,7 @@ public class EventStreamChannelTests
     public async Task Test_LargeSplitPacket_Combined()
     {
         using var stream = new MemoryStream();
-        int lastPacketLength = 150;
+        var lastPacketLength = 150;
         var packetBody = CreateLargePacket(stream, PacketConstants.MaxBodyLength * 4 + lastPacketLength);
         stream.Position = 0;
 
@@ -55,7 +55,7 @@ public class EventStreamChannelTests
     {
         byte sequence = 0;
         var packet = new byte[bodySize];
-        for (int i = 0; i < packet.Length; i++)
+        for (var i = 0; i < packet.Length; i++)
         {
             packet[i] = (byte)(sequence + i % 256);
             if (i % PacketConstants.MaxBodyLength == 0)
@@ -75,9 +75,9 @@ public class EventStreamChannelTests
 
     private void WriteHeader(MemoryStream stream, byte sequence, int packetLength)
     {
-        for (int i = 0; i < 3; i++)
+        for (var i = 0; i < 3; i++)
         {
-            byte value = (byte)(0xFF & ((uint)packetLength >> (i << 3)));
+            var value = (byte)(0xFF & ((uint)packetLength >> (i << 3)));
             stream.WriteByte(value);
         }
         stream.WriteByte(sequence);

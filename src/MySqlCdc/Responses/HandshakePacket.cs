@@ -18,7 +18,7 @@ internal class HandshakePacket : IPacket
     public int StatusFlags { get; }
     public string Filler { get; }
     public byte AuthPluginLength { get; }
-    public string AuthPluginName { get; } = String.Empty;
+    public string AuthPluginName { get; } = string.Empty;
 
     public HandshakePacket(ReadOnlySpan<byte> span)
     {

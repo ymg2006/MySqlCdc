@@ -7,12 +7,12 @@ namespace MySqlCdc.Columns;
 /// <summary>
 /// See <a href="https://dev.mysql.com/doc/internals/en/date-and-time-data-type-representation.html">Docs</a>
 /// </summary>
-internal class ColumnParser
+internal static class ColumnParser
 {
     private const int DigitsPerInt = 9;
-    private static readonly int[] CompressedBytes = { 0, 1, 1, 2, 2, 3, 3, 4, 4, 4 };
+    private static readonly int[] CompressedBytes = [0, 1, 1, 2, 2, 3, 3, 4, 4, 4];
 
-    public string ParseNewDecimal(ref PacketReader reader, int metadata)
+    public static string ParseNewDecimal(ref PacketReader reader, int metadata)
     {
         var precision = metadata & 0xFF;
         var scale = metadata >> 8;
@@ -92,43 +92,43 @@ internal class ColumnParser
         return result.ToString();
     }
 
-    public byte ParseTinyInt(ref PacketReader reader, int metadata) => reader.ReadByte();
+    public static byte ParseTinyInt(ref PacketReader reader, int metadata) => reader.ReadByte();
 
-    public Int16 ParseSmallInt(ref PacketReader reader, int metadata) => (Int16)reader.ReadUInt16LittleEndian();
+    public static short ParseSmallInt(ref PacketReader reader, int metadata) => (short)reader.ReadUInt16LittleEndian();
 
-    public Int32 ParseMediumInt(ref PacketReader reader, int metadata)
+    public static int ParseMediumInt(ref PacketReader reader, int metadata)
     {
         /* Adjust negative 3-byte number to Int32 */
         return (reader.ReadIntLittleEndian(3) << 8) >> 8;
     }
 
-    public Int32 ParseInt(ref PacketReader reader, int metadata) => (Int32)reader.ReadUInt32LittleEndian();
+    public static int ParseInt(ref PacketReader reader, int metadata) => (int)reader.ReadUInt32LittleEndian();
 
-    public Int64 ParseBigInt(ref PacketReader reader, int metadata) => reader.ReadInt64LittleEndian();
+    public static long ParseBigInt(ref PacketReader reader, int metadata) => reader.ReadInt64LittleEndian();
 
-    public float ParseFloat(ref PacketReader reader, int metadata)
+    public static float ParseFloat(ref PacketReader reader, int metadata)
     {
         return BitConverter.ToSingle(BitConverter.GetBytes(reader.ReadUInt32LittleEndian()), 0);
     }
 
-    public double ParseDouble(ref PacketReader reader, int metadata)
+    public static double ParseDouble(ref PacketReader reader, int metadata)
     {
         return BitConverter.Int64BitsToDouble(reader.ReadInt64LittleEndian());
     }
 
-    public string ParseString(ref PacketReader reader, int metadata)
+    public static string ParseString(ref PacketReader reader, int metadata)
     {
         int length = metadata < 256 ? reader.ReadByte() : reader.ReadUInt16LittleEndian();
         return reader.ReadString(length);
     }
 
-    public byte[] ParseBlob(ref PacketReader reader, int metadata)
+    public static byte[] ParseBlob(ref PacketReader reader, int metadata)
     {
         var length = reader.ReadIntLittleEndian(metadata);
         return reader.ReadByteArraySlow(length);
     }
 
-    public bool[] ParseBit(ref PacketReader reader, int metadata)
+    public static bool[] ParseBit(ref PacketReader reader, int metadata)
     {
         var length = (metadata >> 8) * 8 + (metadata & 0xFF);
         var bitmap = reader.ReadBitmapBigEndian(length);
@@ -136,22 +136,22 @@ internal class ColumnParser
         return bitmap;
     }
 
-    public int ParseEnum(ref PacketReader reader, int metadata)
+    public static int ParseEnum(ref PacketReader reader, int metadata)
     {
         return reader.ReadIntLittleEndian(metadata);
     }
 
-    public long ParseSet(ref PacketReader reader, int metadata)
+    public static long ParseSet(ref PacketReader reader, int metadata)
     {
         return reader.ReadLongLittleEndian(metadata);
     }
 
-    public int ParseYear(ref PacketReader reader, int metadata)
+    public static int ParseYear(ref PacketReader reader, int metadata)
     {
         return 1900 + reader.ReadByte();
     }
 
-    public DateOnly? ParseDate(ref PacketReader reader, int metadata)
+    public static DateOnly? ParseDate(ref PacketReader reader, int metadata)
     {
         var value = reader.ReadIntLittleEndian(3);
 
@@ -166,7 +166,7 @@ internal class ColumnParser
         return new DateOnly(year, month, day);
     }
 
-    public TimeSpan ParseTime(ref PacketReader reader, int metadata)
+    public static TimeSpan ParseTime(ref PacketReader reader, int metadata)
     {
         var value = (reader.ReadIntLittleEndian(3) << 8) >> 8;
 
@@ -181,13 +181,13 @@ internal class ColumnParser
         return new TimeSpan(hours, minutes, seconds);
     }
 
-    public DateTimeOffset ParseTimeStamp(ref PacketReader reader, int metadata)
+    public static DateTimeOffset ParseTimeStamp(ref PacketReader reader, int metadata)
     {
         long seconds = reader.ReadUInt32LittleEndian();
         return DateTimeOffset.FromUnixTimeSeconds(seconds);
     }
 
-    public DateTime? ParseDateTime(ref PacketReader reader, int metadata)
+    public static DateTime? ParseDateTime(ref PacketReader reader, int metadata)
     {
         var value = reader.ReadInt64LittleEndian();
         var second = (int)(value % 100);
@@ -205,45 +205,81 @@ internal class ColumnParser
         if (year == 0 || month == 0 || day == 0)
             return null;
 
-        return new DateTime(year, month, day, hour, minute, second);
+        return new DateTime(year, month, day, hour, minute, second, DateTimeKind.Utc);
     }
 
-    public TimeSpan ParseTime2(ref PacketReader reader, int metadata)
+    public static TimeSpan ParseTime2(ref PacketReader reader, int metadata)
     {
-        var value = reader.ReadIntBigEndian(3);
-        var millisecond = ParseFractionalPart(ref reader, metadata) / 1000;
+        if (metadata < 0)
+            throw new NotSupportedException($"Len < 0 is not supported in MySQL. Got {metadata}");
+        if (metadata > 6)
+            throw new NotSupportedException($"Len > 6 is not supported in MySQL. Got {metadata}");
 
-        var negative = ((value >> 23) & 1) == 0;
-        if (negative)
+        var length = metadata <= 4 ? 3 : 6;
+        var value = reader.ReadLongBigEndian(length);
+
+        // see MySQL server, my_time.cc for constant values
+        // https://github.com/mysql/mysql-server/blob/ea7d2e2d16ac03afdd9cb72a972a95981107bf51/mysys/my_time.cc#L1734
+        if (metadata <= 4)
         {
-            // It looks like other similar clients don't parse TIME2 values properly
-            // In negative time values both TIME and FSP are stored in reverse order
-            // See https://github.com/mysql/mysql-server/blob/ea7d2e2d16ac03afdd9cb72a972a95981107bf51/sql/log_event.cc#L2022
-            // See https://github.com/mysql/mysql-server/blob/ea7d2e2d16ac03afdd9cb72a972a95981107bf51/mysys/my_time.cc#L1784
-            throw new NotSupportedException("Parsing negative TIME values is not supported in this version");
+            const long TIMEF_INT_OFS = 0x800000;
+            value -= TIMEF_INT_OFS;
+        }
+        else // 5 and 6
+        {
+            const long TIMEF_OFS = 0x800000000000;
+            value -= TIMEF_OFS;
         }
 
+        var negative = value < 0;
+        long frac;
+        if (metadata <= 4)
+        {
+            frac = ParseFractionalPart<long>(ref reader, metadata, negative);
+        }
+        else // 5 and 6
+        {
+            if (negative)
+                value *= (-1);
+            frac = value % (1L << 24);
+            value = (value >> 24);
+        }
+
+        if (negative && frac != 0 && metadata is >= 1 and <= 4)
+        {
+            value++;
+        }
+
+        if (negative && metadata <= 4)
+        {
+            value *= (-1);
+        }
+
+        var millisecond = frac / 1000D;
         // 1 bit sign. 1 bit unused. 10 bits hour. 6 bits minute. 6 bits second.
+        // '-15:22:33.67'
         var hour = (value >> 12) % (1 << 10);
         var minute = (value >> 6) % (1 << 6);
         var second = value % (1 << 6);
 
-        return new TimeSpan(0, hour, minute, second, millisecond);
+        var ts = new TimeSpan(0, (int)hour, (int)minute, (int)second, 0);
+        ts = ts.Add(TimeSpan.FromMilliseconds(millisecond));
+        return negative ? ts.Negate() : ts;
     }
 
-    public DateTimeOffset ParseTimeStamp2(ref PacketReader reader, int metadata)
+    public static DateTimeOffset ParseTimeStamp2(ref PacketReader reader, int metadata)
     {
         long seconds = reader.ReadUInt32BigEndian();
-        var millisecond = ParseFractionalPart(ref reader, metadata) / 1000;
+        var millisecond = ParseFractionalPart<int>(ref reader, metadata) / 1000;
         var timestamp = seconds * 1000 + millisecond;
 
         return DateTimeOffset.FromUnixTimeMilliseconds(timestamp);
     }
 
-    public DateTime? ParseDateTime2(ref PacketReader reader, int metadata)
+    public static DateTime? ParseDateTime2(ref PacketReader reader, int metadata)
     {
         var value = reader.ReadLongBigEndian(5);
-        var millisecond = ParseFractionalPart(ref reader, metadata) / 1000;
+        var millisecond = ParseFractionalPart<int>(ref reader, metadata) / 1000;
 
         // 1 bit sign(always true). 17 bits year*13+month. 5 bits day. 5 bits hour. 6 bits minute. 6 bits second.
         var yearMonth = (int)((value >> 22) % (1 << 17));
@@ -257,16 +293,33 @@ internal class ColumnParser
         if (year == 0 || month == 0 || day == 0)
             return null;
 
-        return new DateTime(year, month, day, hour, minute, second, millisecond);
+        return new DateTime(year, month, day, hour, minute, second, millisecond, DateTimeKind.Utc);
     }
 
-    private int ParseFractionalPart(ref PacketReader reader, int metadata)
+    private static T ParseFractionalPart<T>(ref PacketReader reader, int metadata, bool negative = false) where T : struct
     {
+        if (typeof(T) != typeof(long) && typeof(T) != typeof(int))
+            throw new NotSupportedException("Only types long and int are supported.");
+
         var length = (metadata + 1) / 2;
         if (length == 0)
-            return 0;
+            return default;
+
+        if (typeof(T) == typeof(long))
+        {
+            var longFraction = reader.ReadLongBigEndian(length);
+            if (negative && metadata <= 2 && longFraction > 0)
+            {
+                longFraction = (256 - longFraction);
+            }
+            else if (negative && metadata <= 4 && longFraction > 0)
+            {
+                longFraction = (65536 - longFraction);
+            }
+            return (T)(object)(longFraction * (int)Math.Pow(100, 3 - length));
+        }
 
         var fraction = reader.ReadIntBigEndian(length);
-        return fraction * (int)Math.Pow(100, 3 - length);
+        return (T)(object)(fraction * (int)Math.Pow(100, 3 - length));
     }
 }

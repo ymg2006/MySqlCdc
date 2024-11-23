@@ -12,7 +12,7 @@ namespace MySqlCdc;
 /// </summary>
 public class BinlogReader
 {
-    private static readonly byte[] MagicNumber = { 0xfe, 0x62, 0x69, 0x6e };
+    private static readonly byte[] MagicNumber = [0xfe, 0x62, 0x69, 0x6e];
     private readonly EventDeserializer _eventDeserializer;
     private readonly PipeReader _pipeReader;
 

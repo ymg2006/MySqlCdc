@@ -319,8 +319,8 @@ public class PacketReaderTests
     private (int number, int consumed) ReadLengthEncodedNumber(byte[] payload)
     {
         var reader = new PacketReader(payload);
-        int number = reader.ReadLengthEncodedNumber();
-        int consumed = reader.Consumed;
+        var number = reader.ReadLengthEncodedNumber();
+        var consumed = reader.Consumed;
         return (number, consumed);
     }
 }
