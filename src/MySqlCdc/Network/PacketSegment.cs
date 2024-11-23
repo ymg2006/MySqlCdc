@@ -13,7 +13,7 @@ internal class PacketSegment : ReadOnlySequenceSegment<byte>
     {
         var segment = new PacketSegment(memory)
         {
-            RunningIndex = this.RunningIndex + this.Memory.Length
+            RunningIndex = RunningIndex + Memory.Length
         };
         Next = segment;
         return segment;

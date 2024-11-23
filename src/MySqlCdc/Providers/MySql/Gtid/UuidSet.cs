@@ -37,8 +37,8 @@ public class UuidSet
         if (SourceId != gtid.SourceId)
             throw new ArgumentException("SourceId of the passed gtid doesn't belong to the UuidSet");
 
-        int index = FindIntervalIndex(gtid.TransactionId);
-        bool added = false;
+        var index = FindIntervalIndex(gtid.TransactionId);
+        var added = false;
         if (index < Intervals.Count)
         {
             var interval = Intervals[index];
@@ -92,7 +92,7 @@ public class UuidSet
 
     private void CollapseIntervals()
     {
-        int index = 0;
+        var index = 0;
         while (index < Intervals.Count - 1)
         {
             Interval left = Intervals[index], right = Intervals[index + 1];

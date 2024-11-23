@@ -14,11 +14,11 @@ public class GtidEventParser : IEventParser
     /// </summary>
     public IBinlogEvent ParseEvent(EventHeader header, ref PacketReader reader)
     {
-        long sequence = reader.ReadInt64LittleEndian();
+        var sequence = reader.ReadInt64LittleEndian();
         long domainId = reader.ReadUInt32LittleEndian();
         var gtid = new Gtid(domainId, header.ServerId, sequence);
 
-        byte flags = reader.ReadByte();
+        var flags = reader.ReadByte();
         return new GtidEvent(gtid, flags);
     }
 }

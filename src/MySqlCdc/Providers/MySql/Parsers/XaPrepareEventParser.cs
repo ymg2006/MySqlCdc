@@ -14,12 +14,12 @@ public class XaPrepareEventParser : IEventParser
     /// </summary>
     public IBinlogEvent ParseEvent(EventHeader header, ref PacketReader reader)
     {
-        bool onePhase = reader.ReadByte() != 0x00;
-        int formatId = (int)reader.ReadUInt32LittleEndian();
-        int gtridLength = (int)reader.ReadUInt32LittleEndian();
-        int bqualLength = (int)reader.ReadUInt32LittleEndian();
-        string gtrid = reader.ReadString(gtridLength);
-        string bqual = reader.ReadString(bqualLength);
+        var onePhase = reader.ReadByte() != 0x00;
+        var formatId = (int)reader.ReadUInt32LittleEndian();
+        var gtridLength = (int)reader.ReadUInt32LittleEndian();
+        var bqualLength = (int)reader.ReadUInt32LittleEndian();
+        var gtrid = reader.ReadString(gtridLength);
+        var bqual = reader.ReadString(bqualLength);
 
         return new XaPrepareEvent(onePhase, formatId, gtrid, bqual);
     }

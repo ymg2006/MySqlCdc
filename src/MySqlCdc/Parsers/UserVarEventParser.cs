@@ -14,20 +14,20 @@ public class UserVarEventParser : IEventParser
     /// </summary>
     public IBinlogEvent ParseEvent(EventHeader header, ref PacketReader reader)
     {
-        int nameLength = (int)reader.ReadUInt32LittleEndian();
-        string name = reader.ReadString(nameLength);
+        var nameLength = (int)reader.ReadUInt32LittleEndian();
+        var name = reader.ReadString(nameLength);
 
-        bool isNull = reader.ReadByte() != 0; // 0 indicates there is a value
+        var isNull = reader.ReadByte() != 0; // 0 indicates there is a value
         if (isNull)
             return new UserVarEvent(name, null);
 
-        byte variableType = reader.ReadByte();
-        int collationNumber = (int)reader.ReadUInt32LittleEndian();
+        var variableType = reader.ReadByte();
+        var collationNumber = (int)reader.ReadUInt32LittleEndian();
 
-        int valueLength = (int)reader.ReadUInt32LittleEndian();
-        string value = reader.ReadString(valueLength);
+        var valueLength = (int)reader.ReadUInt32LittleEndian();
+        var value = reader.ReadString(valueLength);
 
-        byte flags = reader.ReadByte();
+        var flags = reader.ReadByte();
 
         return new UserVarEvent(name, new VariableValue(variableType, collationNumber, value, flags));
     }

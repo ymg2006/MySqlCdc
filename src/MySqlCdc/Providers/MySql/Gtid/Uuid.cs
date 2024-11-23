@@ -19,7 +19,7 @@ public class Uuid
             throw new ArgumentException("Uuid requires byte[16]");
 
         var sb = new StringBuilder();
-        for (int i = 0; i < data.Length; i++)
+        for (var i = 0; i < data.Length; i++)
         {
             if (i == 4 || i == 6 || i == 8 || i == 10)
                 sb.Append("-");
@@ -54,7 +54,7 @@ public class Uuid
     /// </summary>
     public override bool Equals(object? obj)
     {
-        if (object.ReferenceEquals(this, obj))
+        if (ReferenceEquals(this, obj))
             return true;
 
         if (obj is Uuid other)
@@ -68,7 +68,7 @@ public class Uuid
     /// </summary>
     public static bool operator ==(Uuid uuid1, Uuid uuid2)
     {
-        if (object.ReferenceEquals(uuid1, uuid2))
+        if (ReferenceEquals(uuid1, uuid2))
             return true;
 
         return uuid1.Equals(uuid2);

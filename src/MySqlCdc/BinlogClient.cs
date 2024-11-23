@@ -57,8 +57,7 @@ public class BinlogClient
         var channel = new EventStreamChannel(eventStreamReader, connection.Stream);
         var timeout = _options.HeartbeatInterval.Add(TimeSpan.FromMilliseconds(TimeoutConstants.Delta));
 
-        await foreach (var packet in channel.ReadPacketAsync(timeout, cancellationToken)
-            .WithCancellation(cancellationToken))
+        await foreach (var packet in channel.ReadPacketAsync(timeout, cancellationToken))
         {
             if (packet is HeaderWithEvent binlogEvent)
             {
@@ -73,9 +72,9 @@ public class BinlogClient
             else if (packet is EndOfFilePacket && !_options.Blocking)
                 yield break;
             else if (packet is ErrorPacket error)
-                throw new InvalidOperationException($"Event stream error. {error.ToString()}");
+                throw new InvalidOperationException($"Event stream error. {error}");
             else
-                throw new InvalidOperationException($"Event stream unexpected error.");
+                throw new InvalidOperationException("Event stream unexpected error.");
         }
     }
 
@@ -88,7 +87,7 @@ public class BinlogClient
         {
             _gtid = gtidEvent.Gtid;
         }
-        else if (binlogEvent is XidEvent xidEvent)
+        else if (binlogEvent is XidEvent)
         {
             CommitGtid();
         }
@@ -125,7 +124,7 @@ public class BinlogClient
         // Rows event depends on preceding TableMapEvent & we change the position
         // after we read them atomically to prevent missing mapping on reconnect.
         // Figure out something better as TableMapEvent can be followed by several row events.
-        if (binlogEvent is TableMapEvent tableMapEvent)
+        if (binlogEvent is TableMapEvent)
             return;
 
         if (binlogEvent is RotateEvent rotateEvent)

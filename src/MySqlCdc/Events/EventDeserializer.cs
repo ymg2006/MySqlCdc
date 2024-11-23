@@ -60,7 +60,7 @@ public abstract class EventDeserializer
         // ChecksumType.Verify(eventBuffer, checksumBuffer);
         reader.SliceFromEnd(ChecksumStrategy.Length);
 
-        IBinlogEvent binlogEvent = EventParsers.TryGetValue(eventHeader.EventType, out var eventParser)
+        var binlogEvent = EventParsers.TryGetValue(eventHeader.EventType, out var eventParser)
             ? eventParser.ParseEvent(eventHeader, ref reader)
             : new UnknownEvent();
 

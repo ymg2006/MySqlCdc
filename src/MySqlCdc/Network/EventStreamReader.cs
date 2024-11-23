@@ -10,15 +10,8 @@ namespace MySqlCdc.Network;
 /// Reads binlog event packets from network stream.
 /// <a href="https://mariadb.com/kb/en/3-binlog-network-stream/">See more</a>
 /// </summary>
-internal class EventStreamReader : IEventStreamReader
+internal class EventStreamReader(EventDeserializer eventDeserializer) : IEventStreamReader
 {
-    private readonly EventDeserializer _eventDeserializer;
-
-    public EventStreamReader(EventDeserializer eventDeserializer)
-    {
-        _eventDeserializer = eventDeserializer;
-    }
-
     public IPacket ReadPacket(ReadOnlySequence<byte> buffer)
     {
         using var memoryOwner = new MemoryOwner(buffer);
@@ -28,7 +21,7 @@ internal class EventStreamReader : IEventStreamReader
         // Network stream has 3 possible status types.
         return status switch
         {
-            ResponseType.Ok => _eventDeserializer.DeserializeEvent(ref reader),
+            ResponseType.Ok => eventDeserializer.DeserializeEvent(ref reader),
             ResponseType.Error => new ErrorPacket(memoryOwner.Memory.Span[1..]),
             ResponseType.EndOfFile => new EndOfFilePacket(memoryOwner.Memory.Span[1..]),
             _ => throw new Exception("Unknown network stream status"),

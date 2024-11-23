@@ -31,7 +31,7 @@ public ref struct PacketReader
     /// </summary>
     public UInt16 ReadUInt16LittleEndian()
     {
-        UInt16 result = BinaryPrimitives.ReadUInt16LittleEndian(_span.Slice(_offset));
+        var result = BinaryPrimitives.ReadUInt16LittleEndian(_span.Slice(_offset));
         _offset += 2;
         return result;
     }
@@ -41,7 +41,7 @@ public ref struct PacketReader
     /// </summary>
     public UInt16 ReadUInt16BigEndian()
     {
-        UInt16 result = BinaryPrimitives.ReadUInt16BigEndian(_span.Slice(_offset));
+        var result = BinaryPrimitives.ReadUInt16BigEndian(_span.Slice(_offset));
         _offset += 2;
         return result;
     }
@@ -51,7 +51,7 @@ public ref struct PacketReader
     /// </summary>
     public UInt32 ReadUInt32LittleEndian()
     {
-        UInt32 result = BinaryPrimitives.ReadUInt32LittleEndian(_span.Slice(_offset));
+        var result = BinaryPrimitives.ReadUInt32LittleEndian(_span.Slice(_offset));
         _offset += 4;
         return result;
     }
@@ -61,7 +61,7 @@ public ref struct PacketReader
     /// </summary>
     public UInt32 ReadUInt32BigEndian()
     {
-        UInt32 result = BinaryPrimitives.ReadUInt32BigEndian(_span.Slice(_offset));
+        var result = BinaryPrimitives.ReadUInt32BigEndian(_span.Slice(_offset));
         _offset += 4;
         return result;
     }
@@ -71,7 +71,7 @@ public ref struct PacketReader
     /// </summary>
     public UInt64 ReadUInt64LittleEndian()
     {
-        UInt64 result = BinaryPrimitives.ReadUInt64LittleEndian(_span.Slice(_offset));
+        var result = BinaryPrimitives.ReadUInt64LittleEndian(_span.Slice(_offset));
         _offset += 8;
         return result;
     }
@@ -81,7 +81,7 @@ public ref struct PacketReader
     /// </summary>
     public long ReadInt64LittleEndian()
     {
-        long result = BinaryPrimitives.ReadInt64LittleEndian(_span.Slice(_offset));
+        var result = BinaryPrimitives.ReadInt64LittleEndian(_span.Slice(_offset));
         _offset += 8;
         return result;
     }
@@ -91,8 +91,8 @@ public ref struct PacketReader
     /// </summary>
     public int ReadIntLittleEndian(int length)
     {
-        int result = 0;
-        for (int i = 0; i < length; i++)
+        var result = 0;
+        for (var i = 0; i < length; i++)
         {
             result |= _span[_offset + i] << (i << 3);
         }
@@ -106,7 +106,7 @@ public ref struct PacketReader
     public long ReadLongLittleEndian(int length)
     {
         long result = 0;
-        for (int i = 0; i < length; i++)
+        for (var i = 0; i < length; i++)
         {
             result |= (long)_span[_offset + i] << (i << 3);
         }
@@ -119,10 +119,10 @@ public ref struct PacketReader
     /// </summary>
     public int ReadIntBigEndian(int length)
     {
-        int result = 0;
-        for (int i = 0; i < length; i++)
+        var result = 0;
+        for (var i = 0; i < length; i++)
         {
-            result = (result << 8) | (int)_span[_offset + i];
+            result = (result << 8) | _span[_offset + i];
         }
         _offset += length;
         return result;
@@ -134,9 +134,9 @@ public ref struct PacketReader
     public long ReadLongBigEndian(int length)
     {
         long result = 0;
-        for (int i = 0; i < length; i++)
+        for (var i = 0; i < length; i++)
         {
-            result = (result << 8) | (long)_span[_offset + i];
+            result = (result << 8) | _span[_offset + i];
         }
         _offset += length;
         return result;
@@ -151,19 +151,19 @@ public ref struct PacketReader
     /// </summary>
     public int ReadLengthEncodedNumber()
     {
-        byte firstByte = ReadByte();
+        var firstByte = ReadByte();
 
         if (firstByte < 0xFB)
             return firstByte;
-        else if (firstByte == 0xFB)
+        if (firstByte == 0xFB)
             throw new FormatException("Length encoded integer cannot be NULL.");
-        else if (firstByte == 0xFC)
+        if (firstByte == 0xFC)
             return ReadUInt16LittleEndian();
-        else if (firstByte == 0xFD)
+        if (firstByte == 0xFD)
             return ReadIntLittleEndian(3);
-        else if (firstByte == 0xFE)
+        if (firstByte == 0xFE)
         {
-            long value = ReadInt64LittleEndian();
+            var value = ReadInt64LittleEndian();
             if (value < 0 || value > Int32.MaxValue)
                 throw new OverflowException($"Length encoded integer cannot exceed {nameof(Int32.MaxValue)}.");
 
@@ -198,7 +198,7 @@ public ref struct PacketReader
     /// </summary>
     public string ReadNullTerminatedString()
     {
-        int index = 0;
+        var index = 0;
         while (true)
         {
             if (_span[_offset + index++] == PacketConstants.NullTerminator)
@@ -236,12 +236,12 @@ public ref struct PacketReader
     {
         var result = new bool[bitsNumber];
         var bytesNumber = (bitsNumber + 7) / 8;
-        for (int i = 0; i < bytesNumber; i++)
+        for (var i = 0; i < bytesNumber; i++)
         {
-            byte value = _span[_offset + i];
-            for (int y = 0; y < 8; y++)
+            var value = _span[_offset + i];
+            for (var y = 0; y < 8; y++)
             {
-                int index = (i << 3) + y;
+                var index = (i << 3) + y;
                 if (index == bitsNumber)
                     break;
                 result[index] = (value & (1 << y)) > 0;
@@ -258,12 +258,12 @@ public ref struct PacketReader
     {
         var result = new bool[bitsNumber];
         var bytesNumber = (bitsNumber + 7) / 8;
-        for (int i = 0; i < bytesNumber; i++)
+        for (var i = 0; i < bytesNumber; i++)
         {
-            byte value = _span[_offset + i];
-            for (int y = 0; y < 8; y++)
+            var value = _span[_offset + i];
+            for (var y = 0; y < 8; y++)
             {
-                int index = ((bytesNumber - i - 1) << 3) + y;
+                var index = ((bytesNumber - i - 1) << 3) + y;
                 if (index >= bitsNumber)
                     continue;
                 result[index] = (value & (1 << y)) > 0;

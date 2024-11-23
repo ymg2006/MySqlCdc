@@ -7,14 +7,9 @@ namespace MySqlCdc.Commands;
 /// See <a href="https://mariadb.com/kb/en/com_register_slave/">MariaDB docs</a>
 /// See <a href="https://dev.mysql.com/doc/internals/en/com-register-slave.html">MySQL docs</a>
 /// </summary>
-internal class RegisterSlaveCommand : ICommand
+internal class RegisterSlaveCommand(long serverId) : ICommand
 {
-    public long ServerId { get; }
-
-    public RegisterSlaveCommand(long serverId)
-    {
-        ServerId = serverId;
-    }
+    public long ServerId { get; } = serverId;
 
     public byte[] Serialize()
     {

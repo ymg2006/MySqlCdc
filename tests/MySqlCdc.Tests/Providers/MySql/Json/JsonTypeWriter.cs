@@ -3,15 +3,10 @@ using MySqlCdc.Constants;
 
 namespace MySqlCdc.Providers.MySql;
 
-internal class JsonTypeWriter : IJsonWriter
+internal class JsonTypeWriter(Utf8JsonWriter writer) : IJsonWriter
 {
-    private readonly Utf8JsonWriter _writer;
+    private readonly Utf8JsonWriter _writer = writer;
     private string? _propertyName;
-
-    public JsonTypeWriter(Utf8JsonWriter writer)
-    {
-        _writer = writer;
-    }
 
     public void WriteKey(string name)
     {

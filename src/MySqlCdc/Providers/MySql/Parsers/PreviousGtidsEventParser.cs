@@ -14,7 +14,7 @@ public class PreviousGtidsEventParser : IEventParser
     /// </summary>
     public IBinlogEvent ParseEvent(EventHeader header, ref PacketReader reader)
     {
-        long uuidSetNumber = reader.ReadInt64LittleEndian();
+        var uuidSetNumber = reader.ReadInt64LittleEndian();
         var gtidSet = new GtidSet();
 
         for (long i = 0; i < uuidSetNumber; i++)
@@ -22,11 +22,11 @@ public class PreviousGtidsEventParser : IEventParser
             var sourceId = new Uuid(reader.ReadByteArraySlow(16));
             var uuidSet = new UuidSet(sourceId, new List<Interval>());
 
-            long intervalNumber = reader.ReadInt64LittleEndian();
+            var intervalNumber = reader.ReadInt64LittleEndian();
             for (long y = 0; y < intervalNumber; y++)
             {
-                long start = reader.ReadInt64LittleEndian();
-                long end = reader.ReadInt64LittleEndian();
+                var start = reader.ReadInt64LittleEndian();
+                var end = reader.ReadInt64LittleEndian();
                 uuidSet.Intervals.Add(new Interval(start, end - 1));
             }
             gtidSet.UuidSets[sourceId] = uuidSet;

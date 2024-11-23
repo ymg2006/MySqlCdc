@@ -6,20 +6,13 @@ namespace MySqlCdc.Commands;
 /// Requests binlog event stream.
 /// <a href="https://mariadb.com/kb/en/library/com_binlog_dump/">See more</a>
 /// </summary>
-internal class DumpBinlogCommand : ICommand
+internal class DumpBinlogCommand(long serverId, string binlogFilename, long binlogPosition, int flags = 0)
+    : ICommand
 {
-    public long ServerId { get; }
-    public string BinlogFilename { get; }
-    public long BinlogPosition { get; }
-    public int Flags { get; }
-
-    public DumpBinlogCommand(long serverId, string binlogFilename, long binlogPosition, int flags = 0)
-    {
-        ServerId = serverId;
-        BinlogFilename = binlogFilename;
-        BinlogPosition = binlogPosition;
-        Flags = flags;
-    }
+    public long ServerId { get; } = serverId;
+    public string BinlogFilename { get; } = binlogFilename;
+    public long BinlogPosition { get; } = binlogPosition;
+    public int Flags { get; } = flags;
 
     public byte[] Serialize()
     {

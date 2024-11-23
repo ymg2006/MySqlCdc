@@ -78,7 +78,7 @@ public class TableMetadata
         while (!reader.IsEmpty())
         {
             var metadataType = (MetadataType)reader.ReadByte();
-            int metadataLength = reader.ReadLengthEncodedNumber();
+            var metadataLength = reader.ReadLengthEncodedNumber();
 
             var metadata = reader.ReadByteArraySlow(metadataLength);
 
@@ -131,7 +131,7 @@ public class TableMetadata
 
     private DefaultCharset ParseDefaultCharset(ref PacketReader reader)
     {
-        int defaultCharsetCollation = reader.ReadLengthEncodedNumber();
+        var defaultCharsetCollation = reader.ReadLengthEncodedNumber();
         var charsetCollations = ParseIntMap(ref reader);
         return new DefaultCharset(defaultCharsetCollation, charsetCollations);
     }
@@ -141,8 +141,8 @@ public class TableMetadata
         var result = new Dictionary<int, int>();
         while (!reader.IsEmpty())
         {
-            int key = reader.ReadLengthEncodedNumber();
-            int value = reader.ReadLengthEncodedNumber();
+            var key = reader.ReadLengthEncodedNumber();
+            var value = reader.ReadLengthEncodedNumber();
             result[key] = value;
         }
         return result;
@@ -153,7 +153,7 @@ public class TableMetadata
         var result = new List<int>();
         while (!reader.IsEmpty())
         {
-            int value = reader.ReadLengthEncodedNumber();
+            var value = reader.ReadLengthEncodedNumber();
             result.Add(value);
         }
         return result;
@@ -164,7 +164,7 @@ public class TableMetadata
         var result = new List<string>();
         while (!reader.IsEmpty())
         {
-            string value = reader.ReadLengthEncodedString();
+            var value = reader.ReadLengthEncodedString();
             result.Add(value);
         }
         return result;
@@ -175,9 +175,9 @@ public class TableMetadata
         var result = new List<IReadOnlyList<string>>();
         while (!reader.IsEmpty())
         {
-            int length = reader.ReadLengthEncodedNumber();
+            var length = reader.ReadLengthEncodedNumber();
             var typeValues = new string[length];
-            for (int i = 0; i < length; i++)
+            for (var i = 0; i < length; i++)
             {
                 typeValues[i] = reader.ReadLengthEncodedString();
             }
@@ -190,12 +190,12 @@ public class TableMetadata
     {
         var result = new bool[bitsNumber];
         var bytesNumber = (bitsNumber + 7) / 8;
-        for (int i = 0; i < bytesNumber; i++)
+        for (var i = 0; i < bytesNumber; i++)
         {
-            byte value = reader.ReadByte();
-            for (int y = 0; y < 8; y++)
+            var value = reader.ReadByte();
+            for (var y = 0; y < 8; y++)
             {
-                int index = (i << 3) + y;
+                var index = (i << 3) + y;
                 if (index == bitsNumber)
                     break;
 
@@ -208,8 +208,8 @@ public class TableMetadata
 
     private int GetNumericColumnCount(byte[] columnTypes)
     {
-        int count = 0;
-        for (int i = 0; i < columnTypes.Length; i++)
+        var count = 0;
+        for (var i = 0; i < columnTypes.Length; i++)
         {
             switch ((ColumnType)columnTypes[i])
             {

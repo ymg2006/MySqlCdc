@@ -14,39 +14,39 @@ internal class ColumnParser
 
     public string ParseNewDecimal(ref PacketReader reader, int metadata)
     {
-        int precision = metadata & 0xFF;
-        int scale = metadata >> 8;
-        int integral = precision - scale;
+        var precision = metadata & 0xFF;
+        var scale = metadata >> 8;
+        var integral = precision - scale;
 
-        int uncompressedIntegral = integral / DigitsPerInt;
-        int uncompressedFractional = scale / DigitsPerInt;
-        int compressedIntegral = integral - (uncompressedIntegral * DigitsPerInt);
-        int compressedFractional = scale - (uncompressedFractional * DigitsPerInt);
-        int length =
+        var uncompressedIntegral = integral / DigitsPerInt;
+        var uncompressedFractional = scale / DigitsPerInt;
+        var compressedIntegral = integral - (uncompressedIntegral * DigitsPerInt);
+        var compressedFractional = scale - (uncompressedFractional * DigitsPerInt);
+        var length =
             (uncompressedIntegral << 2) + CompressedBytes[compressedIntegral] +
             (uncompressedFractional << 2) + CompressedBytes[compressedFractional];
 
         // Format
         // [1-3 bytes]  [4 bytes]      [4 bytes]        [4 bytes]      [4 bytes]      [1-3 bytes]
         // [Compressed] [Uncompressed] [Uncompressed] . [Uncompressed] [Uncompressed] [Compressed]
-        byte[] value = reader.ReadByteArraySlow(length);
+        var value = reader.ReadByteArraySlow(length);
         var result = new StringBuilder();
 
-        bool negative = (value[0] & 0x80) == 0;
+        var negative = (value[0] & 0x80) == 0;
         value[0] ^= 0x80;
 
         if (negative)
         {
             result.Append('-');
-            for (int i = 0; i < value.Length; i++)
+            for (var i = 0; i < value.Length; i++)
                 value[i] ^= 0xFF;
         }
 
         using var memoryOwner = new MemoryOwner(new ReadOnlySequence<byte>(value));
         var buffer = new PacketReader(memoryOwner.Memory.Span);
 
-        bool started = false;
-        int size = CompressedBytes[compressedIntegral];
+        var started = false;
+        var size = CompressedBytes[compressedIntegral];
 
         if (size > 0)
         {
@@ -57,7 +57,7 @@ internal class ColumnParser
                 result.Append(number);
             }
         }
-        for (int i = 0; i < uncompressedIntegral; i++)
+        for (var i = 0; i < uncompressedIntegral; i++)
         {
             var number = buffer.ReadUInt32BigEndian();
             if (started)
@@ -81,7 +81,7 @@ internal class ColumnParser
         }
 
         size = CompressedBytes[compressedFractional];
-        for (int i = 0; i < uncompressedFractional; i++)
+        for (var i = 0; i < uncompressedFractional; i++)
         {
             result.Append(buffer.ReadUInt32BigEndian().ToString("D9"));
         }
@@ -130,7 +130,7 @@ internal class ColumnParser
 
     public bool[] ParseBit(ref PacketReader reader, int metadata)
     {
-        int length = (metadata >> 8) * 8 + (metadata & 0xFF);
+        var length = (metadata >> 8) * 8 + (metadata & 0xFF);
         var bitmap = reader.ReadBitmapBigEndian(length);
         Array.Reverse(bitmap);
         return bitmap;
@@ -153,12 +153,12 @@ internal class ColumnParser
 
     public DateOnly? ParseDate(ref PacketReader reader, int metadata)
     {
-        int value = reader.ReadIntLittleEndian(3);
+        var value = reader.ReadIntLittleEndian(3);
 
         // Bits 1-5 store the day. Bits 6-9 store the month. The remaining bits store the year.
-        int day = value % (1 << 5);
-        int month = (value >> 5) % (1 << 4);
-        int year = value >> 9;
+        var day = value % (1 << 5);
+        var month = (value >> 5) % (1 << 4);
+        var year = value >> 9;
 
         if (year == 0 || month == 0 || day == 0)
             return null;
@@ -168,16 +168,16 @@ internal class ColumnParser
 
     public TimeSpan ParseTime(ref PacketReader reader, int metadata)
     {
-        int value = (reader.ReadIntLittleEndian(3) << 8) >> 8;
+        var value = (reader.ReadIntLittleEndian(3) << 8) >> 8;
 
         if (value < 0)
             throw new NotSupportedException("Parsing negative TIME values is not supported in this version");
 
-        int seconds = value % 100;
+        var seconds = value % 100;
         value = value / 100;
-        int minutes = value % 100;
+        var minutes = value % 100;
         value = value / 100;
-        int hours = value;
+        var hours = value;
         return new TimeSpan(hours, minutes, seconds);
     }
 
@@ -189,18 +189,18 @@ internal class ColumnParser
 
     public DateTime? ParseDateTime(ref PacketReader reader, int metadata)
     {
-        long value = reader.ReadInt64LittleEndian();
-        int second = (int)(value % 100);
+        var value = reader.ReadInt64LittleEndian();
+        var second = (int)(value % 100);
         value = value / 100;
-        int minute = (int)(value % 100);
+        var minute = (int)(value % 100);
         value = value / 100;
-        int hour = (int)(value % 100);
+        var hour = (int)(value % 100);
         value = value / 100;
-        int day = (int)(value % 100);
+        var day = (int)(value % 100);
         value = value / 100;
-        int month = (int)(value % 100);
+        var month = (int)(value % 100);
         value = value / 100;
-        int year = (int)value;
+        var year = (int)value;
 
         if (year == 0 || month == 0 || day == 0)
             return null;
@@ -210,10 +210,10 @@ internal class ColumnParser
 
     public TimeSpan ParseTime2(ref PacketReader reader, int metadata)
     {
-        int value = reader.ReadIntBigEndian(3);
-        int millisecond = ParseFractionalPart(ref reader, metadata) / 1000;
+        var value = reader.ReadIntBigEndian(3);
+        var millisecond = ParseFractionalPart(ref reader, metadata) / 1000;
 
-        bool negative = ((value >> 23) & 1) == 0;
+        var negative = ((value >> 23) & 1) == 0;
         if (negative)
         {
             // It looks like other similar clients don't parse TIME2 values properly
@@ -224,9 +224,9 @@ internal class ColumnParser
         }
 
         // 1 bit sign. 1 bit unused. 10 bits hour. 6 bits minute. 6 bits second.
-        int hour = (value >> 12) % (1 << 10);
-        int minute = (value >> 6) % (1 << 6);
-        int second = value % (1 << 6);
+        var hour = (value >> 12) % (1 << 10);
+        var minute = (value >> 6) % (1 << 6);
+        var second = value % (1 << 6);
 
         return new TimeSpan(0, hour, minute, second, millisecond);
     }
@@ -234,25 +234,25 @@ internal class ColumnParser
     public DateTimeOffset ParseTimeStamp2(ref PacketReader reader, int metadata)
     {
         long seconds = reader.ReadUInt32BigEndian();
-        int millisecond = ParseFractionalPart(ref reader, metadata) / 1000;
-        long timestamp = seconds * 1000 + millisecond;
+        var millisecond = ParseFractionalPart(ref reader, metadata) / 1000;
+        var timestamp = seconds * 1000 + millisecond;
 
         return DateTimeOffset.FromUnixTimeMilliseconds(timestamp);
     }
 
     public DateTime? ParseDateTime2(ref PacketReader reader, int metadata)
     {
-        long value = reader.ReadLongBigEndian(5);
-        int millisecond = ParseFractionalPart(ref reader, metadata) / 1000;
+        var value = reader.ReadLongBigEndian(5);
+        var millisecond = ParseFractionalPart(ref reader, metadata) / 1000;
 
         // 1 bit sign(always true). 17 bits year*13+month. 5 bits day. 5 bits hour. 6 bits minute. 6 bits second.
-        int yearMonth = (int)((value >> 22) % (1 << 17));
-        int year = yearMonth / 13;
-        int month = yearMonth % 13;
-        int day = (int)((value >> 17) % (1 << 5));
-        int hour = (int)((value >> 12) % (1 << 5));
-        int minute = (int)((value >> 6) % (1 << 6));
-        int second = (int)(value % (1 << 6));
+        var yearMonth = (int)((value >> 22) % (1 << 17));
+        var year = yearMonth / 13;
+        var month = yearMonth % 13;
+        var day = (int)((value >> 17) % (1 << 5));
+        var hour = (int)((value >> 12) % (1 << 5));
+        var minute = (int)((value >> 6) % (1 << 6));
+        var second = (int)(value % (1 << 6));
 
         if (year == 0 || month == 0 || day == 0)
             return null;
@@ -262,11 +262,11 @@ internal class ColumnParser
 
     private int ParseFractionalPart(ref PacketReader reader, int metadata)
     {
-        int length = (metadata + 1) / 2;
+        var length = (metadata + 1) / 2;
         if (length == 0)
             return 0;
 
-        int fraction = reader.ReadIntBigEndian(length);
+        var fraction = reader.ReadIntBigEndian(length);
         return fraction * (int)Math.Pow(100, 3 - length);
     }
 }

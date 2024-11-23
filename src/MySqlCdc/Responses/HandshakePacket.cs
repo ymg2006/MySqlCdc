@@ -28,17 +28,17 @@ internal class HandshakePacket : IPacket
         ServerVersion = reader.ReadNullTerminatedString();
         ConnectionId = reader.ReadUInt32LittleEndian();
         Scramble = reader.ReadNullTerminatedString();
-        byte[] capabilityFlags1 = reader.ReadByteArraySlow(2);
+        var capabilityFlags1 = reader.ReadByteArraySlow(2);
         ServerCollation = reader.ReadByte();
         StatusFlags = reader.ReadUInt16LittleEndian();
-        byte[] capabilityFlags2 = reader.ReadByteArraySlow(2);
+        var capabilityFlags2 = reader.ReadByteArraySlow(2);
         AuthPluginLength = reader.ReadByte();
         Filler = reader.ReadString(6);
-        byte[] capabilityFlags3 = reader.ReadByteArraySlow(4);
+        var capabilityFlags3 = reader.ReadByteArraySlow(4);
 
         // Join lower and upper capability flags to a number
         var capabilityFlags = capabilityFlags1.Concat(capabilityFlags2).Concat(capabilityFlags3).ToArray();
-        for (int i = 0; i < capabilityFlags.Length; i++)
+        for (var i = 0; i < capabilityFlags.Length; i++)
         {
             ServerCapabilities |= (long)capabilityFlags[i] << (i << 3);
         }

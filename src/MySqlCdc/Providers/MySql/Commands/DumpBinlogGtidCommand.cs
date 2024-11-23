@@ -7,22 +7,19 @@ namespace MySqlCdc.Commands;
 /// Requests binlog event stream by GtidSet.
 /// <a href="https://dev.mysql.com/doc/internals/en/com-binlog-dump-gtid.html">See more</a>
 /// </summary>
-internal class DumpBinlogGtidCommand : ICommand
+internal class DumpBinlogGtidCommand(
+    long serverId,
+    string binlogFilename,
+    long binlogPosition,
+    GtidSet gtidSet,
+    int flags = 0)
+    : ICommand
 {
-    public long ServerId { get; }
-    public string BinlogFilename { get; }
-    public long BinlogPosition { get; }
-    public GtidSet GtidSet { get; }
-    public int Flags { get; }
-
-    public DumpBinlogGtidCommand(long serverId, string binlogFilename, long binlogPosition, GtidSet gtidSet, int flags = 0)
-    {
-        ServerId = serverId;
-        BinlogFilename = binlogFilename;
-        BinlogPosition = binlogPosition;
-        GtidSet = gtidSet;
-        Flags = flags;
-    }
+    public long ServerId { get; } = serverId;
+    public string BinlogFilename { get; } = binlogFilename;
+    public long BinlogPosition { get; } = binlogPosition;
+    public GtidSet GtidSet { get; } = gtidSet;
+    public int Flags { get; } = flags;
 
     public byte[] Serialize()
     {
@@ -36,7 +33,7 @@ internal class DumpBinlogGtidCommand : ICommand
         writer.WriteString(BinlogFilename);
         writer.WriteLongLittleEndian(BinlogPosition, 8);
 
-        int dataLength = 8; /* Number of UuidSets */
+        var dataLength = 8; /* Number of UuidSets */
         foreach (var uuidSet in GtidSet.UuidSets.Values)
         {
             dataLength += 16;   /* SourceId */

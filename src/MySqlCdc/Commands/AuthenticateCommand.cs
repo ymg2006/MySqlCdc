@@ -46,11 +46,11 @@ internal class AuthenticateCommand : ICommand
         writer.WriteIntLittleEndian(ClientCollation, 1);
 
         // Fill reserved bytes 
-        for (int i = 0; i < 23; i++)
+        for (var i = 0; i < 23; i++)
             writer.WriteByte(0);
 
         writer.WriteNullTerminatedString(Username);
-        byte[] encryptedPassword = Extensions.GetEncryptedPassword(Password, Scramble, AuthPluginName);
+        var encryptedPassword = Extensions.GetEncryptedPassword(Password, Scramble, AuthPluginName);
         writer.WriteByte((byte) encryptedPassword.Length);
         writer.WriteByteArray(encryptedPassword);
 

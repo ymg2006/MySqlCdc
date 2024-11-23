@@ -40,10 +40,10 @@ internal class Connector
 
     private async Task AuthenticateAsync(HandshakePacket handshake, byte seqNum, CancellationToken cancellationToken = default)
     {
-        bool useSsl = false;
+        var useSsl = false;
         if (_options.SslMode != SslMode.Disabled)
         {
-            bool sslAvailable = (handshake.ServerCapabilities & (long)CapabilityFlags.Ssl) != 0;
+            var sslAvailable = (handshake.ServerCapabilities & (long)CapabilityFlags.Ssl) != 0;
 
             if (!sslAvailable && _options.SslMode >= SslMode.Require)
                 throw new InvalidOperationException("The server doesn't support SSL encryption");

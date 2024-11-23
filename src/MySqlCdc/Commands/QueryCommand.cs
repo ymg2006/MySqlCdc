@@ -6,14 +6,9 @@ namespace MySqlCdc.Commands;
 /// COM_QUERY sends the server an SQL statement to be executed immediately.
 /// <a href="https://mariadb.com/kb/en/library/com_query/">See more</a>
 /// </summary>
-internal class QueryCommand : ICommand
+internal class QueryCommand(string sql) : ICommand
 {
-    public string Sql { get; }
-
-    public QueryCommand(string sql)
-    {
-        Sql = sql;
-    }
+    public string Sql { get; } = sql;
 
     public byte[] Serialize()
     {

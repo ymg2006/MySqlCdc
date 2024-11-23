@@ -1,7 +1,7 @@
 using MySqlCdc.Constants;
 using MySqlCdc.Events;
-using MySqlCdc.Protocol;
 using MySqlCdc.Metadata;
+using MySqlCdc.Protocol;
 
 namespace MySqlCdc.Parsers;
 
@@ -51,8 +51,8 @@ public class TableMapEventParser : IEventParser
 
     private int[] ParseMetadata(ref PacketReader reader, byte[] columnTypes)
     {
-        int[] metadata = new int[columnTypes.Length];
-        for (int i = 0; i < columnTypes.Length; i++)
+        var metadata = new int[columnTypes.Length];
+        for (var i = 0; i < columnTypes.Length; i++)
         {
             // See https://mariadb.com/kb/en/library/rows_event_v1/#column-data-formats
             switch ((ColumnType)columnTypes[i])

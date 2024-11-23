@@ -2,18 +2,11 @@ using MySqlCdc.Protocol;
 
 namespace MySqlCdc.Commands;
 
-internal class AuthPluginSwitchCommand : ICommand
+internal class AuthPluginSwitchCommand(string password, string scramble, string authPluginName) : ICommand
 {
-    public string Password { get; }
-    public string Scramble { get; }
-    public string AuthPluginName { get; }
-
-    public AuthPluginSwitchCommand(string password, string scramble, string authPluginName)
-    {
-        Password = password;
-        Scramble = scramble;
-        AuthPluginName = authPluginName;
-    }
+    public string Password { get; } = password;
+    public string Scramble { get; } = scramble;
+    public string AuthPluginName { get; } = authPluginName;
 
     public byte[] Serialize()
     {

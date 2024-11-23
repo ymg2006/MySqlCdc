@@ -32,7 +32,7 @@ public abstract class RowEventParser
     /// </summary>
     protected (long tableId, int flags, int columnsNumber) ParseHeader(ref PacketReader reader)
     {
-        long tableId = reader.ReadLongLittleEndian(6);
+        var tableId = reader.ReadLongLittleEndian(6);
         int flags = reader.ReadUInt16LittleEndian();
 
         // Ignore extra data from newer versions of events
@@ -42,7 +42,7 @@ public abstract class RowEventParser
             reader.Advance(extraDataLength - 2);
         }
 
-        var columnsNumber = (int)reader.ReadLengthEncodedNumber();
+        var columnsNumber = reader.ReadLengthEncodedNumber();
         return (tableId, flags, columnsNumber);
     }
 
@@ -96,8 +96,8 @@ public abstract class RowEventParser
         var row = new object?[tableMap.ColumnTypes.Length];
         var nullBitmap = reader.ReadBitmapLittleEndian(cellsIncluded);
 
-        int skippedColumns = 0;
-        for (int i = 0; i < tableMap.ColumnTypes.Length; i++)
+        var skippedColumns = 0;
+        for (var i = 0; i < tableMap.ColumnTypes.Length; i++)
         {
             // Data is missing if binlog_row_image != full
             if (!columnsPresent[i])
@@ -106,11 +106,11 @@ public abstract class RowEventParser
                 continue;
             }
 
-            int nullBitmapIndex = i - skippedColumns;
+            var nullBitmapIndex = i - skippedColumns;
             if (!nullBitmap[nullBitmapIndex])
             {
                 int columnType = tableMap.ColumnTypes[i];
-                int metadata = tableMap.ColumnMetadata[i];
+                var metadata = tableMap.ColumnMetadata[i];
 
                 if (columnType == (int)ColumnType.String)
                 {
@@ -179,8 +179,8 @@ public abstract class RowEventParser
     protected int GetBitsNumber(bool[] bitmap)
     {
         // USING LINQ HERE WILL SLOW DOWN PERFORMANCE A LOT
-        int value = 0;
-        for (int i = 0; i < bitmap.Length; i++)
+        var value = 0;
+        for (var i = 0; i < bitmap.Length; i++)
         {
             if (bitmap[i])
                 value++;
@@ -200,8 +200,8 @@ public abstract class RowEventParser
             return;
 
         // CHAR or ENUM or SET column types
-        int byte0 = metadata >> 8;
-        int byte1 = metadata & 0xFF;
+        var byte0 = metadata >> 8;
+        var byte1 = metadata & 0xFF;
 
         if ((byte0 & 0x30) != 0x30)
         {

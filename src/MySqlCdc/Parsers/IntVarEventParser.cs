@@ -14,8 +14,8 @@ public class IntVarEventParser : IEventParser
     /// </summary>
     public IBinlogEvent ParseEvent(EventHeader header, ref PacketReader reader)
     {
-        byte type = reader.ReadByte();
-        long value = reader.ReadInt64LittleEndian();
+        var type = reader.ReadByte();
+        var value = reader.ReadInt64LittleEndian();
 
         return new IntVarEvent(type, value);
     }

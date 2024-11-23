@@ -7,23 +7,16 @@ namespace MySqlCdc.Commands;
 /// SSLRequest packet used in SSL/TLS connection.
 /// <a href="https://mariadb.com/kb/en/library/connection/#sslrequest-packet">See more</a>
 /// </summary>
-internal class SslRequestCommand : ICommand
+internal class SslRequestCommand(int clientCollation) : ICommand
 {
-    public int ClientCapabilities { get; }
-    public int ClientCollation { get; }
-    public int MaxPacketSize { get; }
+    public int ClientCapabilities { get; } = (int)CapabilityFlags.LongFlag
+                                             | (int)CapabilityFlags.Protocol41
+                                             | (int)CapabilityFlags.SecureConnection
+                                             | (int)CapabilityFlags.Ssl
+                                             | (int)CapabilityFlags.PluginAuth;
 
-    public SslRequestCommand(int clientCollation)
-    {
-        ClientCollation = clientCollation;
-        MaxPacketSize = 0;
-
-        ClientCapabilities = (int)CapabilityFlags.LongFlag
-                             | (int)CapabilityFlags.Protocol41
-                             | (int)CapabilityFlags.SecureConnection
-                             | (int)CapabilityFlags.Ssl
-                             | (int)CapabilityFlags.PluginAuth;
-    }
+    public int ClientCollation { get; } = clientCollation;
+    public int MaxPacketSize { get; } = 0;
 
     public byte[] Serialize()
     {
@@ -33,7 +26,7 @@ internal class SslRequestCommand : ICommand
         writer.WriteIntLittleEndian(ClientCollation, 1);
 
         // Fill reserved bytes 
-        for (int i = 0; i < 23; i++)
+        for (var i = 0; i < 23; i++)
             writer.WriteByte(0);
 
         return writer.CreatePacket();

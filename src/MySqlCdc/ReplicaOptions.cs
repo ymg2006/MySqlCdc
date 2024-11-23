@@ -62,4 +62,9 @@ public class ReplicaOptions
     /// Defaults to 30 seconds.
     /// </summary>
     public TimeSpan HeartbeatInterval { get; set; } = TimeSpan.FromSeconds(30);
+
+    /// <summary>
+    /// Should be true in mysql 9+. Defaults to true.
+    /// </summary>
+    public bool UseNewStatusCommand { get; set; } = true;
 }

@@ -8,12 +8,7 @@ namespace MySqlCdc.Protocol;
 /// </summary>
 internal class PacketWriter : IDisposable
 {
-    private readonly MemoryStream _stream;
-
-    public PacketWriter()
-    {
-        _stream = new MemoryStream();
-    }
+    private readonly MemoryStream _stream = new();
 
     /// <summary>
     /// Writes byte to the stream.
@@ -36,9 +31,9 @@ internal class PacketWriter : IDisposable
     /// </summary>
     public void WriteIntLittleEndian(int number, int length)
     {
-        for (int i = 0; i < length; i++)
+        for (var i = 0; i < length; i++)
         {
-            byte value = (byte)(0xFF & ((uint)number >> (i << 3)));
+            var value = (byte)(0xFF & ((uint)number >> (i << 3)));
             _stream.WriteByte(value);
         }
     }
@@ -48,9 +43,9 @@ internal class PacketWriter : IDisposable
     /// </summary>
     public void WriteLongLittleEndian(long number, int length)
     {
-        for (int i = 0; i < length; i++)
+        for (var i = 0; i < length; i++)
         {
-            byte value = (byte)(0xFF & ((ulong)number >> (i << 3)));
+            var value = (byte)(0xFF & ((ulong)number >> (i << 3)));
             _stream.WriteByte(value);
         }
     }

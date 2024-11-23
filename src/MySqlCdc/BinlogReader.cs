@@ -23,10 +23,10 @@ public class BinlogReader
     /// <param name="stream">Stream representing a binlog file</param>
     public BinlogReader(EventDeserializer eventDeserializer, Stream stream)
     {
-        byte[] header = new byte[EventConstants.FirstEventPosition];
-        stream.Read(header, 0, EventConstants.FirstEventPosition);
+        var header = new byte[EventConstants.FirstEventPosition];
+        var readLen = stream.Read(header, 0, EventConstants.FirstEventPosition);
 
-        if (!header.SequenceEqual(MagicNumber))
+        if (readLen == 0 || !header.SequenceEqual(MagicNumber))
             throw new InvalidOperationException("Invalid binary log file header");
 
         _eventDeserializer = eventDeserializer;
@@ -42,8 +42,8 @@ public class BinlogReader
     {
         while (!cancellationToken.IsCancellationRequested)
         {
-            ReadResult result = await _pipeReader.ReadAsync(cancellationToken);
-            ReadOnlySequence<byte> buffer = result.Buffer;
+            var result = await _pipeReader.ReadAsync(cancellationToken);
+            var buffer = result.Buffer;
 
             while (!cancellationToken.IsCancellationRequested)
             {
@@ -73,7 +73,7 @@ public class BinlogReader
         await _pipeReader.CompleteAsync();
     }
 
-    private EventHeader GetEventHeader(ReadOnlySequence<byte> buffer)
+    private static EventHeader GetEventHeader(ReadOnlySequence<byte> buffer)
     {
         using var memoryOwner = new MemoryOwner(buffer.Slice(0, EventConstants.HeaderSize));
         var reader = new PacketReader(memoryOwner.Memory.Span);

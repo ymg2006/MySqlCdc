@@ -10,7 +10,7 @@ public class GtidList : IGtidState
     /// <summary>
     /// Gets a list of Gtids per each domain.
     /// </summary>
-    public List<Gtid> Gtids { get; } = new List<Gtid>();
+    public List<Gtid> Gtids { get; } = new();
 
     /// <summary>
     /// Parses <see cref="GtidList"/> from string representation.
@@ -29,19 +29,17 @@ public class GtidList : IGtidState
         var result = new GtidList();
         foreach (var gtid in gtids)
         {
-            string[] components = gtid.Split('-');
-            long domainId = long.Parse(components[0]);
-            long serverId = long.Parse(components[1]);
-            long sequence = long.Parse(components[2]);
+            var components = gtid.Split('-');
+            var domainId = long.Parse(components[0]);
+            var serverId = long.Parse(components[1]);
+            var sequence = long.Parse(components[2]);
 
             if (domainMap.Contains(domainId))
             {
                 throw new FormatException("GtidList must consist of unique domain ids");
             }
-            else
-            {
-                domainMap.Add(domainId);
-            }
+
+            domainMap.Add(domainId);
 
             result.Gtids.Add(new Gtid(domainId, serverId, sequence));
         }
@@ -55,7 +53,7 @@ public class GtidList : IGtidState
     {
         var gtid = (Gtid)gtidRaw;
 
-        for (int i = 0; i < Gtids.Count; i++)
+        for (var i = 0; i < Gtids.Count; i++)
         {
             if (Gtids[i].DomainId == gtid.DomainId)
             {

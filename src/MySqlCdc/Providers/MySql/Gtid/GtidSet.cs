@@ -11,7 +11,7 @@ public class GtidSet : IGtidState
     /// <summary>
     /// Gets a list of UuidSet parts in the GtidSet.
     /// </summary>
-    public Dictionary<Uuid, UuidSet> UuidSets { get; } = new Dictionary<Uuid, UuidSet>();
+    public Dictionary<Uuid, UuidSet> UuidSets { get; } = new();
 
     /// <summary>
     /// Parses <see cref="GtidSet"/> from string representation.
@@ -29,15 +29,15 @@ public class GtidSet : IGtidState
         var result = new GtidSet();
         foreach (var uuidSet in uuidSets)
         {
-            int separatorIndex = uuidSet.IndexOf(':');
+            var separatorIndex = uuidSet.IndexOf(':');
             var sourceId = Uuid.Parse(uuidSet.Substring(0, separatorIndex));
 
             var intervals = new List<Interval>();
-            string[] ranges = uuidSet.Substring(separatorIndex + 1).Split(':');
+            var ranges = uuidSet.Substring(separatorIndex + 1).Split(':');
 
             foreach (var token in ranges)
             {
-                string[] range = token.Split('-');
+                var range = token.Split('-');
                 var interval = range.Length switch
                 {
                     1 => new Interval(long.Parse(range[0]), long.Parse(range[0])),

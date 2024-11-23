@@ -6,27 +6,20 @@ using MySqlCdc.Protocol;
 
 namespace MySqlCdc.Network;
 
-internal class EventStreamChannel
+internal class EventStreamChannel(IEventStreamReader eventStreamReader, Stream stream)
 {
-    private readonly IEventStreamReader _eventStreamReader;
-    private readonly PipeReader _pipeReader;
+    private readonly PipeReader _pipeReader = PipeReader.Create(stream);
     private List<PacketSegment>? _multipacket;
-
-    public EventStreamChannel(IEventStreamReader eventStreamReader, Stream stream)
-    {
-        _eventStreamReader = eventStreamReader;
-        _pipeReader = PipeReader.Create(stream);
-    }
 
     public async IAsyncEnumerable<IPacket> ReadPacketAsync(TimeSpan timeout, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         while (!cancellationToken.IsCancellationRequested)
         {
-            ReadResult result = await _pipeReader.ReadAsync(cancellationToken)
+            var result = await _pipeReader.ReadAsync(cancellationToken)
                 .AsTask()
                 .WithTimeout(timeout, TimeoutConstants.Message);
 
-            ReadOnlySequence<byte> buffer = result.Buffer;
+            var buffer = result.Buffer;
 
             while (!cancellationToken.IsCancellationRequested)
             {
@@ -78,7 +71,7 @@ internal class EventStreamChannel
 
             if (_multipacket == null)
             {
-                _multipacket = new List<PacketSegment> { new PacketSegment(array) };
+                _multipacket = new List<PacketSegment> { new(array) };
             }
             else
             {
@@ -95,6 +88,6 @@ internal class EventStreamChannel
             _multipacket = null;
         }
 
-        return _eventStreamReader.ReadPacket(buffer);
+        return eventStreamReader.ReadPacket(buffer);
     }
 }

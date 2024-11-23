@@ -12,7 +12,7 @@ internal class MySqlProvider : IDatabaseProvider
 
     public async Task DumpBinlogAsync(Connection channel, ReplicaOptions options, CancellationToken cancellationToken = default)
     {
-        long serverId = options.Blocking ? options.ServerId : 0;
+        var serverId = options.Blocking ? options.ServerId : 0;
             
         ICommand command;
         if (options.Binlog.StartingStrategy == StartingStrategy.FromGtid)

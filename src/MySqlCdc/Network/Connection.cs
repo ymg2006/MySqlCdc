@@ -37,16 +37,16 @@ internal class Connection
     public async Task WritePacketAsync(byte[] array, byte seqNum, CancellationToken cancellationToken = default)
     {
         var header = new byte[PacketConstants.HeaderSize];
-        
+
         // Write header size
-        for (int i = 0; i < PacketConstants.HeaderSize - 1; i++)
+        for (var i = 0; i < PacketConstants.HeaderSize - 1; i++)
         {
             header[i] = (byte)(0xFF & ((uint)array.Length >> (i << 3)));
         }
-        
+
         // Write sequence number
         header[3] = seqNum;
-        
+
         await Stream.WriteAsync(header, 0, header.Length, cancellationToken);
         await Stream.WriteAsync(array, 0, array.Length, cancellationToken);
     }
@@ -57,15 +57,22 @@ internal class Connection
     /// </summary>
     public async Task<(byte[], byte)> ReadPacketAsync(CancellationToken cancellationToken = default)
     {
-        byte[] header = new byte[PacketConstants.HeaderSize];
-        await Stream.ReadAsync(header, 0, header.Length, cancellationToken);
+        var header = new byte[PacketConstants.HeaderSize];
+        var headerReadLen = await Stream.ReadAsync(header, 0, header.Length, cancellationToken);
 
-        // We don't care about packet splitting in handshake flow
-        var bodySize = header[0] + (header[1] << 8) + (header[2] << 16);
-        byte[] body = new byte[bodySize];
-        await Stream.ReadAsync(body, 0, body.Length, cancellationToken);
+        if (headerReadLen != 0)
+        {
+            // We don't care about packet splitting in handshake flow
+            var bodySize = header[0] + (header[1] << 8) + (header[2] << 16);
+            var body = new byte[bodySize];
+            var bodyReadLen = await Stream.ReadAsync(body, 0, body.Length, cancellationToken);
 
-        return (body, header[3]);
+            if (bodyReadLen != 0)
+            {
+                return (body, header[3]);
+            }
+        }
+        return ([], 0);
     }
 
     public void UpgradeToSsl()

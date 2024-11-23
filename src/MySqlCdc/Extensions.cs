@@ -1,7 +1,7 @@
-using MySqlCdc.Constants;
-using MySqlCdc.Packets;
 using System.Security.Cryptography;
 using System.Text;
+using MySqlCdc.Constants;
+using MySqlCdc.Packets;
 
 namespace MySqlCdc;
 
@@ -14,7 +14,7 @@ internal static class Extensions
 
         if (task == await Task.WhenAny(task, Task.Delay(timeout, cts.Token)).ConfigureAwait(false))
         {
-            cts.Cancel();
+            await cts.CancelAsync();
             return await task.ConfigureAwait(false);
         }
         throw new TimeoutException(timeoutMessage);
@@ -45,8 +45,8 @@ internal static class Extensions
 
     public static byte[] Xor(byte[] array1, byte[] array2)
     {
-        byte[] result = new byte[array1.Length];
-        for (int i = 0; i < result.Length; i++)
+        var result = new byte[array1.Length];
+        for (var i = 0; i < result.Length; i++)
             result[i] = (byte)(array1[i] ^ array2[i % array2.Length]);
         return result;
     }

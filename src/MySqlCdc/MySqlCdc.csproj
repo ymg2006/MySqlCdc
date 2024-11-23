@@ -1,31 +1,29 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <PackageId>MySqlCdc</PackageId>
-    <Version>4.0.0</Version>
-    <Authors>Ruslan Ulianets</Authors>
+    <Version>5.0.0</Version>
+    <Authors>ymg2006</Authors>
     <PackageTags>MySQL;MariaDB;Binlog;CDC;Change Data Capture;Replication;Streaming</PackageTags>
     <Description>MySQL/MariaDB binlog change data capture (CDC) connector for .NET</Description>
-    <PackageProjectUrl>https://github.com/rusuly/MySqlCdc</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/ymg2006/MySqlCdc</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReleaseNotes>
 This version includes following changes:
-1)Targets .NET 8
-2)Separated Header from BinlogEvent.
-3)Events are now declared as records.
-4)Added RandEvent.
+1)Targets .NET 9
+2)Support MySql 9
     </PackageReleaseNotes>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.IO.Pipelines" Version="8.0.0" />
-    <PackageReference Include="System.Text.Json" Version="8.0.0" />
+    <PackageReference Include="System.IO.Pipelines" Version="9.0.0" />
+    <PackageReference Include="System.Text.Json" Version="9.0.0" />
   </ItemGroup>
 
   <ItemGroup>

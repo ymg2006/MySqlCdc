@@ -8,6 +8,6 @@ internal class Crc32Checksum : IChecksumStrategy
 
     public bool Verify(ReadOnlySequence<byte> eventBuffer, ReadOnlySequence<byte> checksumBuffer)
     {
-        throw new System.NotImplementedException();
+        throw new NotImplementedException();
     }
 }
