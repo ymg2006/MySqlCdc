@@ -91,7 +91,7 @@ var client = new BinlogClient(options =>
     options.SslMode = SslMode.Disabled;
     options.HeartbeatInterval = TimeSpan.FromSeconds(30);
     options.Blocking = true;
-    options.UseNewStatusCommand = false; for mysql 9 and above this should be true
+    options.UseNewStatusCommand = false; for mysql 8.4 and above this should be true
 
     // Start replication from MariaDB GTID. Recommended.
     options.Binlog = BinlogOptions.FromGtid(GtidList.Parse("0-1-270"));
